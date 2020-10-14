@@ -4,6 +4,7 @@ import 'package:cab_driver/globalvariables.dart';
 import 'package:cab_driver/helpers/pushnotificationservice.dart';
 import 'package:cab_driver/widgets/AvailabilityButton.dart';
 import 'package:cab_driver/widgets/ConfirmSheet.dart';
+import 'package:cab_driver/widgets/NotificationDialog.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
@@ -83,14 +84,20 @@ class _HomeTabState extends State<HomeTab> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              AvailabilityButton(
+             AvailabilityButton(
                 title: availabilityTitle,
                 color: availabilityColor,
                 onPressed: (){
 
-                  showModalBottomSheet(
+                  showDialog(
+                      context: context,
+                  barrierDismissible: false,
+                  builder: (BuildContext context)=> NotificationDialog(),);
+
+               /*   showModalBottomSheet(
                      isDismissible: false,
-                      context: context, builder: (BuildContext context)=> ConfirmSheet(
+                      context: context,
+                      builder: (BuildContext context)=> ConfirmSheet(
                     title: (!isAvailable) ? 'GO ONLINE' : 'GO OFFLINE',
                     subtitle: (!isAvailable) ? 'You are about to be available online to receive trip requests': 'You are about to go offline you will not receive trip requests',
 
@@ -119,7 +126,7 @@ class _HomeTabState extends State<HomeTab> {
 
                       }
                     },
-                  ));
+                  ));*/
                 },
               ),
             ],
