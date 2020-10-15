@@ -1,7 +1,9 @@
 import 'dart:io';
 
+import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:cab_driver/datamodels/tripdetails.dart';
 import 'package:cab_driver/globalvariables.dart';
+import 'package:cab_driver/widgets/NotificationDialog.dart';
 import 'package:cab_driver/widgets/ProgressDialog.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -99,6 +101,12 @@ class PushNotificationService{
       Navigator.pop(context);
 
       if(snapshot.value != null){
+
+        assetsAudioPlayer.open(
+          Audio('sounds/alert.mp3'),
+        );
+        assetsAudioPlayer.play();
+
         double pickupLat = double.parse(snapshot.value['location']['latitude'].toString());
         double pickupLng = double.parse(snapshot.value['location']['longitude'].toString());
 
@@ -117,7 +125,11 @@ class PushNotificationService{
         tripDetails.destination = LatLng(destinationLat, destinationLng);
         tripDetails.paymentMethod = paymentMethod;
 
-        print(tripDetails.destinationAddress);
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (BuildContext context)=> NotificationDialog(tripDetails: tripDetails ,),
+        );
 
       }
 
