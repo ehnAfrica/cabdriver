@@ -60,12 +60,12 @@ class HelperMethods{
     return randInt.toDouble();
   }
 
-  static void disableHomTabLocationUpdates(){
+  static void disableHomeTabLocationUpdates(){
     homeTabPositionStream.pause();
     Geofire.removeLocation(currentFirebaseUser.uid);
   }
 
-  static void enableHomTabLocationUpdates(){
+  static void enableHomeTabLocationUpdates(){
     homeTabPositionStream.resume();
     Geofire.setLocation(currentFirebaseUser.uid, currentPosition.latitude, currentPosition.longitude);
   }
