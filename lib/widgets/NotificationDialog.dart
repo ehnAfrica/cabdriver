@@ -1,11 +1,22 @@
 import 'package:cab_driver/brand_colors.dart';
+import 'package:cab_driver/datamodels/tripdetails.dart';
+import 'package:cab_driver/globalvariables.dart';
+import 'package:cab_driver/helpers/helpermethods.dart';
+import 'package:cab_driver/screens/newtripspage.dart';
 import 'package:cab_driver/widgets/BrandDivider.dart';
 import 'package:cab_driver/widgets/TaxiOutlineButton.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'package:toast/toast.dart';
 
+import 'ProgressDialog.dart';
 import 'TaxiButton.dart';
 
 class NotificationDialog extends StatelessWidget {
+
+  final TripDetails tripDetails;
+  NotificationDialog({this.tripDetails});
+
   @override
   Widget build(BuildContext context) {
     return Dialog(
@@ -22,6 +33,7 @@ class NotificationDialog extends StatelessWidget {
           borderRadius: BorderRadius.circular(4)
         ),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: <Widget>[
             SizedBox(height: 30.0,),
             Image.asset('images/taxi.png', width: 100,),
@@ -40,7 +52,10 @@ class NotificationDialog extends StatelessWidget {
                          Image.asset('images/pickicon.png', height: 16, width: 16,),
                          SizedBox(width: 18.0,),
 
-                         Text('TRM DRIVE', style: TextStyle(fontSize: 18),)
+                         Expanded(
+                           child: Container(
+                               child: Text(tripDetails.pickupAddress, style: TextStyle(fontSize: 18),)),
+                         )
                        ],
                      ),
                      SizedBox(height: 15.0,),
@@ -49,7 +64,10 @@ class NotificationDialog extends StatelessWidget {
                        children: <Widget>[
                          Image.asset('images/desticon.png', height: 16, width: 16,),
                          SizedBox(width: 18.0,),
-                         Text('LUNGA LUNGA', style: TextStyle(fontSize: 18),),
+                         Expanded(
+                           child: Container(
+                               child: Text(tripDetails.destinationAddress, style: TextStyle(fontSize: 18),)),
+                         ),
                        ],
                      )
                    ],
@@ -73,6 +91,8 @@ class NotificationDialog extends StatelessWidget {
                             color: BrandColors.colorPrimary,
                             onPressed: () async{
 
+                              assetsAudioPlayer.stop();
+                              Navigator.pop(context);
                             },
                           ),
                         ),
@@ -84,7 +104,8 @@ class NotificationDialog extends StatelessWidget {
                           title: 'ACCEPT',
                           color: BrandColors.colorGreen,
                           onPressed: () async{
-
+                            assetsAudioPlayer.stop();
+                            checkAvailability(context);
                           },
                         ),
                       ),
@@ -96,5 +117,55 @@ class NotificationDialog extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  void checkAvailability(context){
+
+    //show dialog
+    showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder:(BuildContext context)=>ProgressDialog(status:'accepting request',),
+    );
+
+    DatabaseReference newRideRef = FirebaseDatabase.instance.reference().child('drivers/${currentFirebaseUser.uid}/newtrip');
+    newRideRef.once().then((DataSnapshot snapshot){
+
+      Navigator.pop(context);
+      Navigator.pop(context);
+
+      String thisRideID = "";
+      if(snapshot.value != null){
+        thisRideID = snapshot.value.toString();
+
+      }
+      else{
+        Toast.show("Ride was not found", context, duration: Toast.LENGTH_SHORT, gravity:  Toast.BOTTOM);
+      //  print('Ride was not found');
+      }
+      if(thisRideID == tripDetails.rideID){
+        newRideRef.set('accepted');
+        HelperMethods.disableHomeTabLocationUpdates();
+
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context)=> NewTripPage(tripDetails: tripDetails,)),
+        );
+      }
+      else if(thisRideID == 'cancelled'){
+
+        Toast.show("Ride has been cancelled", context, duration: Toast.LENGTH_SHORT, gravity:  Toast.BOTTOM);
+
+       // print('Ride has been cancelled');
+
+      }
+      else if(thisRideID == 'timeout'){
+        Toast.show("Ride has timed out", context, duration: Toast.LENGTH_SHORT, gravity:  Toast.BOTTOM);
+       // print('Ride has timed out');
+      }
+      else{
+        Toast.show("Ride was not found", context, duration: Toast.LENGTH_SHORT, gravity:  Toast.BOTTOM);
+       // print('Ride was not found');
+      }
+    });
   }
 }
